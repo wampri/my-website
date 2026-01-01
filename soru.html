@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Küçük Soru Sayfası</title>
+
+<style>
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-family:"Segoe UI", Arial, sans-serif;
+  background:url("shepastaway.jpg") no-repeat center center fixed;
+  background-size:cover;
+  background-color:#050507;
+  position:relative;
+  overflow:hidden;
+}
+
+/* VIGNETTE */
+body::after{
+  content:"";
+  position:fixed; inset:0; pointer-events:none;
+  background:radial-gradient(circle at center,
+    rgba(0,0,0,0) 40%, rgba(0,0,0,.55) 100%);
+  z-index:1;
+}
+
+/* YILDIZ TOZU */
+.stars{
+  position:fixed; inset:0;
+  background:
+    radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,.7), transparent),
+    radial-gradient(2px 2px at 60% 70%, rgba(255,255,255,.7), transparent),
+    radial-gradient(2px 2px at 80% 20%, rgba(255,255,255,.7), transparent),
+    radial-gradient(2px 2px at 30% 80%, rgba(255,255,255,.7), transparent);
+  animation:twinkle 6s ease-in-out infinite;
+  opacity:.45; z-index:1;
+}
+@keyframes twinkle{0%,100%{opacity:.2;}50%{opacity:.55;}}
+
+/* KUROMI 1 */
+.kuromi{
+  position:absolute;
+  width:90px;
+  opacity:.9;
+  animation:float1 14s linear infinite;
+  pointer-events:none;
+  z-index:2;
+}
+@keyframes float1{
+  0%{transform:translate(-120px,18vh) rotate(-10deg);}
+  25%{transform:translate(28vw,6vh) rotate(6deg);}
+  50%{transform:translate(66vw,34vh) rotate(-6deg);}
+  75%{transform:translate(22vw,68vh) rotate(6deg);}
+  100%{transform:translate(-120px,18vh) rotate(-10deg);}
+}
+
+/* KUROMI 2 — rota yukarı alındı (her ekranda görünür) */
+.kuromi2{
+  position:absolute;
+  width:95px;
+  opacity:.9;
+  animation:float2 16s linear infinite;
+  pointer-events:none;
+  z-index:2;
+}
+@keyframes float2{
+  0%{transform:translate(105vw,50vh) rotate(6deg);}
+  25%{transform:translate(75vw,35vh) rotate(-4deg);}
+  50%{transform:translate(40vw,60vh) rotate(5deg);}
+  75%{transform:translate(10vw,40vh) rotate(-3deg);}
+  100%{transform:translate(105vw,50vh) rotate(6deg);}
+}
+
+/* KALP İZİ */
+.heart{
+  position:absolute;
+  width:14px;height:14px;
+  background:#ff7aa9;
+  transform:rotate(45deg);
+  border-radius:2px;opacity:.9;
+  animation:heartFloat 1.2s ease-out forwards;
+  pointer-events:none;z-index:1;
+}
+.heart::before,.heart::after{
+  content:"";position:absolute;
+  width:14px;height:14px;
+  background:#ff7aa9;border-radius:50%;
+}
+.heart::before{top:-7px;left:0;}
+.heart::after{left:-7px;top:0;}
+@keyframes heartFloat{
+  0%{transform:translateY(0) scale(.9) rotate(45deg);opacity:.9;}
+  100%{transform:translateY(-40px) scale(1.4) rotate(45deg);opacity:0;}
+}
+
+/* KART */
+.card{
+  width:360px;padding:24px;border-radius:16px;
+  background:rgba(10,10,14,.68);
+  backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.18);
+  box-shadow:0 20px 40px rgba(0,0,0,.55);
+  color:#e5e5ec;z-index:3;
+}
+h2{margin:0 0 6px;color:#d6c8ff;letter-spacing:.5px;}
+.step{color:#b5b5c8;font-size:13px;margin-bottom:8px;}
+#lyricTitle{min-height:36px;opacity:.9;}
+
+textarea{
+  width:100%;border-radius:10px;border:1px solid #3a334a;
+  background:rgba(25,20,32,.75);color:#eee;padding:10px;
+}
+button{
+  margin-top:10px;width:100%;padding:10px;border-radius:10px;
+  border:none;background:linear-gradient(135deg,#6a4b9c,#3c2c55);
+  color:#f3eaff;font-weight:600;cursor:pointer;
+}
+.saved-box{
+  margin-top:12px;padding:10px;
+  background:rgba(30,24,40,.6);
+  border-radius:10px;border:1px dashed #6f5c92;
+  color:#cfcde8;
+}
+.hidden{display:none;}
+@media(max-width:480px){.card{width:90%;padding:18px;}}
+</style>
+</head>
+
+<body>
+
+<div class="stars"></div>
+
+<img src="kuromi.png"  class="kuromi"  id="k1">
+<img src="kuromi2.png" class="kuromi2" id="k2">
+
+<div class="card">
+  <div id="questionBox">
+    <div class="step" id="stepInfo"></div>
+    <h2 id="lyricTitle"></h2>
+    <p id="questionText"></p>
+
+    <textarea id="answer" rows="4" placeholder="Cevabını buraya yaz"></textarea>
+    <button onclick="next()">Kaydet & Sonraki</button>
+
+    <div class="saved-box" id="savedInfo">Henüz cevap yok.</div>
+  </div>
+
+  <div id="finalBox" class="hidden">
+    <h2>teşekkür ederim</h2>
+    <p>bu küçük sorulara zaman ayırman benim için değerli.</p>
+    <div class="saved-box" id="summary"></div>
+  </div>
+</div>
+
+<script>
+const questions=[
+ "Seni gülümseten bir anını benimle paylaş.",
+ "Birlikte yapmayı en çok istediğin küçük bir şey var mı?",
+ "Seni en çok rahatlatan şey ne.",
+ "En sevdiğin film.",
+ "En sevdiğin şarkı.",
+ "Hafızandan asla çıkmasını istemediğin bir anın.",
+ "Birlikte denemek istediğin ama daha önce hiç denemediğin bir şey."
+];
+
+const lyrics=[
+ "“Touch my heart unveil my soul. Feel the woman hiding beyond”",
+ "“Yarı melek, yarı canavar. Koynuna gireceğim tekrar”",
+ "“Whenever I'm alone with you. You make me feel like I am home again”",
+ "“Yüksek yıldızlar var bu güzel mavi yerde, mavi yer beni yenile”",
+ "“Oh, love like liquid falling. Falling in cascades",
+ "““Geceyi boydan boya geçtim, izini sürdüm yıldızların; nereye dönsem kalbim yine sana döndü”",
+ "““Yanında küle dönmek bile güzel; kalbim seninle yansa da vazgeçmez, aşkı yeniden yazar.”"
+];
+
+let index=0;
+const answers=[];
+
+/* lyric typewriter */
+function setLyric(text){
+  const el=document.getElementById("lyricTitle");
+  el.innerHTML=""; let i=0;
+  const w=setInterval(()=>{
+    el.textContent=text.slice(0,++i);
+    if(i===text.length) clearInterval(w);
+  },25);
+}
+
+function loadQuestion(){
+  document.getElementById("stepInfo").innerText=
+    `Soru ${index+1} / ${questions.length}`;
+  document.getElementById("questionText").innerText=questions[index];
+  setLyric(lyrics[index]);
+  document.getElementById("answer").value="";
+  document.getElementById("savedInfo").innerText="Henüz cevap yok.";
+}
+
+function next(){
+  const t=document.getElementById("answer").value.trim();
+  answers[index]=t||"(boş bırakıldı)";
+  document.getElementById("savedInfo").innerText="Cevap kaydedildi.";
+  if(index<questions.length-1){ index++; loadQuestion(); }
+  else showFinal();
+}
+
+function showFinal(){
+  let out="";
+  questions.forEach((q,i)=>out+=`• ${q}\n→ ${answers[i]}\n\n`);
+  document.getElementById("summary").innerText=out;
+  document.getElementById("questionBox").classList.add("hidden");
+  document.getElementById("finalBox").classList.remove("hidden");
+}
+
+loadQuestion();
+
+/* Kalp izi — iki kuromi */
+function attachHearts(el){
+  setInterval(()=>{
+    const r=el.getBoundingClientRect();
+    const h=document.createElement("div");
+    h.className="heart";
+    h.style.left=r.left+r.width/2+"px";
+    h.style.top=r.top+r.height/2+"px";
+    document.body.appendChild(h);
+    setTimeout(()=>h.remove(),1200);
+  },450);
+}
+attachHearts(document.getElementById("k1"));
+attachHearts(document.getElementById("k2"));
+</script>
+
+<!-- MÜZİK — telefonda kesin başlatılır -->
+<audio id="bgm" src="mywoman.mp3" loop preload="auto" playsinline></audio>
+
+<!-- dokun-başlat katmanı -->
+<div id="tapStart" style="
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.78);
+  color:#e8e8ff;
+  display:flex; justify-content:center; align-items:center;
+  font-size:18px; letter-spacing:.4px;
+  z-index:999; font-family:inherit;">
+  başlatmak için dokun ✦
+</div>
+
+<script>
+const bgm=document.getElementById("bgm");
+const tap=document.getElementById("tapStart");
+
+function startMusic(){
+  tap.style.display="none";
+  bgm.volume=0.65;
+  bgm.play().catch(()=>{});
+}
+
+["click","touchstart"].forEach(ev=>{
+  window.addEventListener(ev,startMusic,{once:true});
+});
+</script>
+
+</body>
+</html>
